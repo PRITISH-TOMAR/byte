@@ -1,0 +1,96 @@
+version: "3.9"
+
+services:
+  app-1:
+    build:
+      context: ../../
+      dockerfile: deployments/docker/Dockerfile
+    container_name: byte-1
+    ports:
+      - "8081:8080"
+    depends_on:
+      - redis
+      - mysql
+    environment:
+      - APP_ENV=local
+      - REDIS_ADDR=redis:6379
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=url_shortener
+    networks:
+      - app-network
+
+  app-2:
+    build:
+      context: ../../
+      dockerfile: deployments/docker/Dockerfile
+    container_name: redis-2
+    ports:
+      - "8082:8080"
+    depends_on:
+      - redis
+      - mysql
+    environment:
+      - APP_ENV=local
+      - REDIS_ADDR=redis:6379
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=url_shortener
+    networks:
+      - app-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: byte-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+  mysql:
+    image: mysql:8
+    container_name: byte-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: url_shortener
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - app-network
+
+  adminer:
+    image: adminer
+    container_name: byte-adminer
+    restart: always
+    ports:
+      - "8083:8080"
+    depends_on:
+      - mysql
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:latest
+    container_name: byte-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - app-1
+      - app-2
+    networks:
+      - app-network
+
+volumes:
+  mysql_data:
+
+networks:
+  app-network:

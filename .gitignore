@@ -1,0 +1,59 @@
+
+# Go build files
+bin/
+build/
+*.exe
+*.out
+*.test
+*.log
+
+# Go module cache (optional)
+go.sum
+
+
+# Environment files
+
+.env
+.env.*
+
+
+# IDE / Editor
+
+.vscode/
+.idea/
+*.swp
+*.swo
+
+
+# OS files
+
+.DS_Store
+Thumbs.db
+
+
+# Docker
+
+docker-compose.override.yml
+
+
+# Logs
+
+logs/
+*.log
+
+
+# Temporary files
+
+tmp/
+temp/
+
+
+# Database files (if any local dumps)
+
+*.sql
+*.gz
+
+
+# Coverage reports
+
+coverage.out
