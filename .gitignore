@@ -13,7 +13,6 @@ go.sum
 
 # Environment files
 
-.env
 .env.*
 
 
