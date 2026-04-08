@@ -1,11 +1,12 @@
 package http
 
 import (
+	"database/sql"
 	"net/http"
+
+	goredis "github.com/redis/go-redis/v9"
 )
 
-func RegisterRoutes() {
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("OK"))
-	})
+func RegisterRoutes(db *sql.DB, rdb *goredis.Client) {
+	http.HandleFunc("/health", healthHandler(db, rdb))
 }

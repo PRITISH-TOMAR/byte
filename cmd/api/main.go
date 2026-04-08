@@ -27,7 +27,7 @@ func main() {
 	defer rdb.Close()
 
 	// Register routes
-	httpInterface.RegisterRoutes()
+	httpInterface.RegisterRoutes(db, rdb)
 
 	// Start server
 	logger.Logger.Printf("server running on :%s", cfg.Port)
