@@ -1,5 +1,6 @@
 version: "3.9"
 
+name: byte
 services:
   app-1:
     build:
@@ -72,7 +73,7 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: url_shortener
     ports:
-      - "3307:3306"
+      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
@@ -86,6 +87,8 @@ services:
   adminer:
     image: adminer
     container_name: byte-adminer
+    environment:
+      ADMINER_DEFAULT_SERVER: mysql
     restart: always
     ports:
       - "8083:8080"
@@ -111,4 +114,5 @@ volumes:
   mysql_data:
 
 networks:
-  app-network:
+  app-network: 
+    driver: bridge
