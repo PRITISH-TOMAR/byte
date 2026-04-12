@@ -1,12 +1,11 @@
-version: "3.9"
+name: by_te
 
-name: byte
 services:
   app-1:
     build:
       context: ../../
       dockerfile: deployments/docker/Dockerfile
-    container_name: byte-1
+    container_name: by_te_1
     ports:
       - "8081:8080"
     depends_on:
@@ -14,6 +13,9 @@ services:
         condition: service_healthy
       mysql:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
     environment:
       - APP_ENV=local
       - REDIS_ADDR=redis:6379
@@ -21,7 +23,7 @@ services:
       - DB_PORT=3306
       - DB_USER=root
       - DB_PASSWORD=root
-      - DB_NAME=url_shortener
+      - DB_NAME=byte_staging
       - REDIS_TIMEOUT_MS=3000
       - DB_TIMEOUT_MS=5000
     networks:
@@ -31,7 +33,7 @@ services:
     build:
       context: ../../
       dockerfile: deployments/docker/Dockerfile
-    container_name: byte-2
+    container_name: by_te_2
     ports:
       - "8082:8080"
     depends_on:
@@ -39,6 +41,9 @@ services:
         condition: service_healthy
       mysql:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
     environment:
       - APP_ENV=local
       - REDIS_ADDR=redis:6379
@@ -46,7 +51,7 @@ services:
       - DB_PORT=3306
       - DB_USER=root
       - DB_PASSWORD=root
-      - DB_NAME=url_shortener
+      - DB_NAME=byte_staging
       - REDIS_TIMEOUT_MS=3000
       - DB_TIMEOUT_MS=5000
     networks:
@@ -54,7 +59,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: byte-redis
+    container_name: by_te_redis
     ports:
       - "6379:6379"
     healthcheck:
@@ -67,13 +72,13 @@ services:
 
   mysql:
     image: mysql:8
-    container_name: byte-mysql
+    container_name: by_te_mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: url_shortener
+      MYSQL_DATABASE: byte_staging
     ports:
-      - "3306:3306"
+      - "3306:3306"  
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
@@ -84,9 +89,25 @@ services:
     networks:
       - app-network
 
+  migrate:
+    image: migrate/migrate
+    container_name: by_te_migrate
+    volumes:
+      - ../../migrations:/migrations
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - app-network
+    entrypoint: [
+      "sh", "-c",
+      "sleep 10 && migrate -path=/migrations -database=mysql://root:root@tcp(mysql:3306)/byte_staging?multiStatements=true up"
+    ]
+    restart: "no"
+
   adminer:
     image: adminer
-    container_name: byte-adminer
+    container_name: by_te_adminer
     environment:
       ADMINER_DEFAULT_SERVER: mysql
     restart: always
@@ -99,7 +120,7 @@ services:
 
   nginx:
     image: nginx:latest
-    container_name: byte-nginx
+    container_name: by_te_nginx
     ports:
       - "8080:80"
     volumes:
@@ -114,5 +135,5 @@ volumes:
   mysql_data:
 
 networks:
-  app-network: 
+  app-network:
     driver: bridge
