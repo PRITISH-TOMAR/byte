@@ -99,10 +99,12 @@ services:
         condition: service_healthy
     networks:
       - app-network
-    entrypoint: [
-      "sh", "-c",
-      "sleep 10 && migrate -path=/migrations -database=mysql://root:root@tcp(mysql:3306)/byte_staging?multiStatements=true up"
-    ]
+    command:
+      [
+        "-path=/migrations",
+        "-database=mysql://root:root@tcp(mysql:3306)/byte_staging?multiStatements=true",
+        "up"
+      ]
     restart: "no"
 
   adminer:
