@@ -16,6 +16,12 @@ services:
       migrate:
         condition: service_completed_successfully
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8080"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
     environment:
       - APP_ENV=local
       - REDIS_ADDR=redis:6379
@@ -44,6 +50,12 @@ services:
       migrate:
         condition: service_completed_successfully
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 8080"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
     environment:
       - APP_ENV=local
       - REDIS_ADDR=redis:6379
@@ -78,7 +90,7 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: byte_staging
     ports:
-      - "3306:3306"  
+      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
@@ -105,7 +117,7 @@ services:
         "-database=mysql://root:root@tcp(mysql:3306)/byte_staging?multiStatements=true",
         "up"
       ]
-    restart: "no"
+    restart: "on-failure"
 
   adminer:
     image: adminer
@@ -128,8 +140,10 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
     depends_on:
-      - app-1
-      - app-2
+      app-1:
+        condition: service_healthy
+      app-2:
+        condition: service_healthy
     networks:
       - app-network
 
